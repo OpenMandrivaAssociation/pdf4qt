@@ -1,0 +1,78 @@
+From 935093fb392096499a019a4a30380f6a28322f28 Mon Sep 17 00:00:00 2001
+From: Nyall Dawson <nyall.dawson@gmail.com>
+Date: Thu, 21 Dec 2023 08:09:27 +1000
+Subject: [PATCH 1/2] FontConfig must be explicitly added for Fedora builds
+
+---
+ CMakeLists.txt               | 1 +
+ Pdf4QtLibCore/CMakeLists.txt | 4 ++++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a410d35c..68821e3b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -69,6 +69,7 @@ find_package(OpenSSL REQUIRED)
+ find_package(lcms REQUIRED)
+ find_package(ZLIB REQUIRED)
+ find_package(Freetype REQUIRED)
++find_package(Fontconfig REQUIRED)
+ find_package(OpenJPEG CONFIG REQUIRED)
+ find_package(JPEG REQUIRED)
+ find_package(PNG REQUIRED)
+diff --git a/Pdf4QtLibCore/CMakeLists.txt b/Pdf4QtLibCore/CMakeLists.txt
+index 6f127272..9dd84130 100644
+--- a/Pdf4QtLibCore/CMakeLists.txt
++++ b/Pdf4QtLibCore/CMakeLists.txt
+@@ -157,6 +157,7 @@ target_link_libraries(Pdf4QtLibCore PRIVATE lcms2::lcms2)
+ target_link_libraries(Pdf4QtLibCore PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+ target_link_libraries(Pdf4QtLibCore PRIVATE ZLIB::ZLIB)
+ target_link_libraries(Pdf4QtLibCore PRIVATE Freetype::Freetype)
++target_link_libraries(Pdf4QtLibCore PRIVATE ${Fontconfig_LIBRARIES})
+ target_link_libraries(Pdf4QtLibCore PRIVATE openjp2)
+ target_link_libraries(Pdf4QtLibCore PRIVATE JPEG::JPEG)
+ 
+@@ -175,6 +176,9 @@ endif()
+ target_include_directories(Pdf4QtLibCore INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/sources)
+ target_include_directories(Pdf4QtLibCore PUBLIC ${CMAKE_BINARY_DIR}/${INSTALL_INCLUDEDIR})
+ 
++target_include_directories(Pdf4QtLibCore PRIVATE SYSTEM
++                           ${Fontconfig_INCLUDE_DIRS})
++
+ set_target_properties(Pdf4QtLibCore PROPERTIES
+                       VERSION ${PDF4QT_VERSION}
+                       SOVERSION ${PDF4QT_VERSION}
+
+From 7e0d1d4def8f93de84fedb16eeede2d3283dabb7 Mon Sep 17 00:00:00 2001
+From: Nyall Dawson <nyall.dawson@gmail.com>
+Date: Thu, 21 Dec 2023 08:10:19 +1000
+Subject: [PATCH 2/2] Fix freetype libraries, include dirs for Fedora build
+ support
+
+---
+ Pdf4QtLibCore/CMakeLists.txt | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Pdf4QtLibCore/CMakeLists.txt b/Pdf4QtLibCore/CMakeLists.txt
+index 9dd84130..340fdeb8 100644
+--- a/Pdf4QtLibCore/CMakeLists.txt
++++ b/Pdf4QtLibCore/CMakeLists.txt
+@@ -156,7 +156,7 @@ target_link_libraries(Pdf4QtLibCore PRIVATE Qt6::Core Qt6::Gui Qt6::Xml Qt6::Svg
+ target_link_libraries(Pdf4QtLibCore PRIVATE lcms2::lcms2)
+ target_link_libraries(Pdf4QtLibCore PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+ target_link_libraries(Pdf4QtLibCore PRIVATE ZLIB::ZLIB)
+-target_link_libraries(Pdf4QtLibCore PRIVATE Freetype::Freetype)
++target_link_libraries(Pdf4QtLibCore PRIVATE ${FREETYPE_LIBRARIES})
+ target_link_libraries(Pdf4QtLibCore PRIVATE ${Fontconfig_LIBRARIES})
+ target_link_libraries(Pdf4QtLibCore PRIVATE openjp2)
+ target_link_libraries(Pdf4QtLibCore PRIVATE JPEG::JPEG)
+@@ -177,7 +177,8 @@ target_include_directories(Pdf4QtLibCore INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/s
+ target_include_directories(Pdf4QtLibCore PUBLIC ${CMAKE_BINARY_DIR}/${INSTALL_INCLUDEDIR})
+ 
+ target_include_directories(Pdf4QtLibCore PRIVATE SYSTEM
+-                           ${Fontconfig_INCLUDE_DIRS})
++                           ${Fontconfig_INCLUDE_DIRS}
++                           ${FREETYPE_INCLUDE_DIRS})
+ 
+ set_target_properties(Pdf4QtLibCore PROPERTIES
+                       VERSION ${PDF4QT_VERSION}
